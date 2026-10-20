@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Sistema de Seguridad Vial - SUTRAN/MTC</title>
+    <style>
+
+        :root {
+            --verde-oscuro: #1A4331;
+            --verde-claro: #A3C9A8;
+            --fondo-gris: #F4F4F4;
+            --blanco: #FFFFFF;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: var(--fondo-gris);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .header {
+            background-color: var(--fondo-gris);
+            padding: 20px;
+            text-align: left;
+            border-bottom: 2px solid var(--verde-claro);
+        }
+        .header h1 { margin: 0; color: var(--verde-oscuro); font-size: 24px; }
+
+        .tabs {
+            display: flex;
+            background-color: #E2E8E4;
+        }
+        .tab-active { background-color: var(--verde-oscuro); color: white; padding: 15px 30px; font-weight: bold; }
+        .tab-inactive { padding: 15px 30px; color: #333; }
+
+        .main-container {
+            display: flex;
+            flex: 1;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: var(--blanco);
+            padding: 20px;
+            border-right: 1px solid #ccc;
+        }
+        .menu-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 10px;
+            border: 1px solid var(--verde-oscuro);
+            border-radius: 5px;
+            background-color: white;
+            cursor: pointer;
+            text-align: left;
+        }
+        .menu-btn.active { background-color: var(--verde-oscuro); color: white; }
+
+        .content {
+            flex: 1;
+            padding: 20px;
+        }
+        .card {
+            background-color: var(--blanco);
+            padding: 20px;
+            border-radius: 10px;
+            display: flex;
+            gap: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .form-section { flex: 1; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+        
+        .btn-consultar {
+            background-color: var(--verde-oscuro);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .btn-limpiar {
+            background-color: white;
+            border: 1px solid var(--verde-oscuro);
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .map-section {
+            flex: 2;
+            background-color: #5A6B63;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            min-height: 300px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>SISTEMA DE SEGURIDAD VIAL<br>SUTRAN / MTC</h1>
+    </div>
+
+    <div class="tabs">
+        <div class="tab-active">1. Búsqueda</div>
+        <div class="tab-inactive">2. Dashboards</div>
+        <div class="tab-inactive">3. Reportes</div>
+        <div class="tab-inactive">4. Configuración</div>
+    </div>
+
+    <div class="main-container">
+        <div class="sidebar">
+            <h3>MÓDULOS</h3>
+            <button class="menu-btn active">1.1 Accidentes</button>
+            <button class="menu-btn">1.2 Cinemómetros</button>
+            <button class="menu-btn">1.3 Emergencias</button>
+            <button class="menu-btn">1.4 Salir</button>
+        </div>
+
+        <div class="content">
+            <h2>MÓDULO ACTIVO / CONSULTA DE ACCIDENTES</h2>
+            
+            <div class="card">
+                <div class="form-section">
+                    <form id="formularioFiltro">
+                        <div class="form-group">
+                            <label>Departamento</label>
+                            <select id="cbxDepartamento">
+                                <option>Lima</option>
+                                <option>Arequipa</option>
+                                <option>Junín</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Año de inicio</label>
+                            <input type="number" id="txtAnio" placeholder="Ej. 2024">
+                        </div>
+                        <div class="form-group">
+                            <label>Código de Vía</label>
+                            <input type="text" id="txtVia" placeholder="Ej. PE-1N">
+                        </div>
+                        <button type="button" class="btn-consultar">Consultar</button>
+                        <button type="button" class="btn-limpiar">Limpiar | (C)</button>
+                    </form>
+                </div>
+
+                <div class="map-section" id="mapaContenedor">
+                    <p>MAPA DE SINIESTRALIDAD (VISTA / IMAGEN)</p>
+                    <!-- Aquí luego se inyectará Leaflet o Google Maps con JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
