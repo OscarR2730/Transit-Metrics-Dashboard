@@ -5,36 +5,48 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AccidenteDAO {
-    // Configura aquí las credenciales de tu SQL Server
-    private String url = "jdbc:sqlserver://localhost:1433;databaseName=BD_SeguridadVial;encrypt=false";
-    private String user = "sa"; 
-    private String pass = "tu_contraseña_aqui";
+    private String url = "jdbc:sqlserver://localhost:1433;databaseName=BD_SeguridadVial;integratedSecurity=true;encrypt=false;";
 
     public List<Accidente> filtrarAccidentes(String departamento, int anio) {
+        
+        try {
+            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+        } catch (ClassNotFoundException e) {
+            System.out.println("Error cargando el driver de SQL Server: " + e.getMessage());
+            e.printStackTrace();
+        }
+
         List<Accidente> lista = new ArrayList<>();
         String sql = "{CALL sp_ConsultarAccidentesFiltro(?, ?)}";
-        
-        try (Connection conn = DriverManager.getConnection(url, user, pass);
+
+        try (Connection conn = DriverManager.getConnection(url);
              CallableStatement stmt = conn.prepareCall(sql)) {
-            
+
             stmt.setString(1, departamento);
             stmt.setInt(2, anio);
             ResultSet rs = stmt.executeQuery();
-            
+
             while (rs.next()) {
                 Accidente a = new Accidente();
-                a.setNroReporte(rs.getString("N° Reporte"));
-                a.setFecha(rs.getString("Fecha"));
-                a.setVia(rs.getString("Vía"));
-                a.setDepartamento(rs.getString("Departamento"));
-                a.setModalidad(rs.getString("Modalidad"));
-                a.setFallecidos(rs.getInt("Fallecidos"));
-                a.setHeridos(rs.getInt("Heridos"));
+                
+                a.setNroReporte(rs.getString(1));
+                a.setFecha(rs.getString(2));
+                
+                String viaDB = rs.getString(3);
+                a.setVia(viaDB != null ? viaDB : "-");
+                
+                a.setDepartamento(rs.getString(4));
+                a.setModalidad(rs.getString(5));
+                a.setFallecidos(rs.getInt(6));
+                a.setHeridos(rs.getInt(7));
+                
                 lista.add(a);
             }
         } catch (SQLException e) {
+            System.out.println("Error de SQL: " + e.getMessage());
             e.printStackTrace();
         }
+        
         return lista;
     }
 }
