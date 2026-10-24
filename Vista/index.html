@@ -6,41 +6,58 @@
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        :root {
-            --verde-oscuro: #1A4331;
-            --verde-claro: #A3C9A8;
-            --fondo-gris: #F4F4F4;
-            --blanco: #FFFFFF;
-        }
-        body { font-family: Arial, sans-serif; margin: 0; background-color: var(--fondo-gris); display: flex; flex-direction: column; height: 100vh; }
+        :root { --verde-oscuro: #1A4331; --verde-claro: #A3C9A8; --fondo-gris: #F4F4F4; --blanco: #FFFFFF; }
+        body { font-family: Arial, sans-serif; margin: 0; background-color: var(--fondo-gris); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         .header { background-color: var(--fondo-gris); padding: 20px; text-align: left; border-bottom: 2px solid var(--verde-claro); }
         .header h1 { margin: 0; color: var(--verde-oscuro); font-size: 24px; }
-        .tabs { display: flex; background-color: #E2E8E4; cursor: pointer; }
-        .tab-active { background-color: var(--verde-oscuro); color: white; padding: 15px 30px; font-weight: bold; }
-        .tab-inactive { padding: 15px 30px; color: #333; }
-        .tab-inactive:hover { background-color: #d1d9d4; }
-        .main-container { display: flex; flex: 1; }
-        .sidebar { width: 250px; background-color: var(--blanco); padding: 20px; border-right: 1px solid #ddd; }
-        .sidebar h3 { font-size: 16px; margin-bottom: 15px; }
-        .menu-btn.active { background-color: var(--verde-oscuro); color: white; }
-        .menu-btn { display: block; width: 100%; padding: 12px; margin-bottom: 10px; background-color: var(--blanco); border: 1px solid #ccc; text-align: left; cursor: pointer; border-radius: 4px; }
-        .menu-btn:hover:not(.active) { background-color: #f0f0f0; }
-        .content { flex: 1; padding: 30px; }
-        .content h2 { color: black; margin-top: 0; font-size: 20px; }
-        .card { background-color: var(--blanco); padding: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; gap: 30px; }
-        .form-section { flex: 1; }
-        .map-section { flex: 2; background-color: #6B7B71; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; overflow: hidden; }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; color: #333; font-size: 14px; }
-        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        .btn-consultar { background-color: var(--verde-oscuro); color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        .btn-limpiar { background-color: white; color: #333; padding: 10px 20px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; margin-left: 10px; }
         
-        .tabla-resultados { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
-        .tabla-resultados th { background-color: var(--verde-oscuro); color: white; padding: 10px; text-align: left; border: 1px solid #ddd; }
-        .tabla-resultados td { padding: 10px; border: 1px solid #ddd; }
+        .tabs { display: flex; background-color: #E2E8E4; cursor: pointer; }
+        .tab-item { padding: 15px 30px; color: #333; transition: 0.3s; }
+        .tab-item:hover:not(.tab-active) { background-color: #d1d9d4; }
+        .tab-active { background-color: var(--verde-oscuro); color: white; font-weight: bold; }
+        
+        .main-container { display: flex; flex: 1; overflow: hidden; }
+        .sidebar { width: 250px; background-color: var(--blanco); padding: 20px; border-right: 1px solid #ddd; overflow-y: auto; }
+        .sidebar h3 { font-size: 16px; margin-bottom: 15px; }
+        .menu-btn { display: block; width: 100%; padding: 12px; margin-bottom: 10px; background-color: var(--blanco); border: 1px solid #ccc; text-align: left; cursor: pointer; border-radius: 4px; transition: 0.2s; }
+        .menu-btn.active { background-color: var(--verde-oscuro); color: white; border-color: var(--verde-oscuro); }
+        .menu-btn:hover:not(.active) { background-color: #f0f0f0; }
+        
+        .content { flex: 1; padding: 30px; overflow-y: auto; }
+        .content h2 { color: black; margin-top: 0; font-size: 20px; margin-bottom: 20px; }
+        
+        .card { background-color: var(--blanco); padding: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; gap: 30px; }
+        .form-section { flex: 1; min-width: 250px; }
+        .map-section { flex: 3; background-color: #6B7B71; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; overflow: hidden; z-index: 1; min-height: 450px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; color: #333; font-size: 14px; font-weight: bold; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        
+        .botones-accion { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+        .botones-fila { display: flex; gap: 10px; }
+        .btn-consultar { background-color: var(--verde-oscuro); color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; flex: 1; }
+        .btn-limpiar { background-color: white; color: #333; padding: 10px 20px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; flex: 1; }
+        .btn-exportar { background-color: #1c7a3d; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; display: none; }
+        .btn-exportar:hover { background-color: #14592c; }
+        
+        .tabla-resultados { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; font-size: 14px; }
+        .tabla-resultados th { background-color: var(--verde-oscuro); color: white; padding: 12px; text-align: left; border: 1px solid #ddd; }
+        .tabla-resultados td { padding: 10px 12px; border: 1px solid #ddd; }
+        .tabla-resultados tr:nth-child(even) { background-color: #f9f9f9; }
+
+        .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 20px; }
+        .chart-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; }
+        .chart-card canvas { width: 100% !important; max-height: 350px; }
+
+        @media print {
+            body * { visibility: hidden; }
+            #area-reporte, #area-reporte * { visibility: visible; }
+            #area-reporte { position: absolute; left: 0; top: 0; width: 100%; border: none; padding: 0; margin: 0; }
+            .tabla-resultados th { background-color: #eee; color: black; -webkit-print-color-adjust: exact; }
+        }
     </style>
 </head>
 <body>
@@ -50,124 +67,358 @@
     </div>
 
     <div class="tabs">
-        <div class="tab-active">1. Búsqueda</div>
-        <div class="tab-inactive opcion-menu">2. Dashboards</div>
-        <div class="tab-inactive opcion-menu">3. Reportes</div>
-        <div class="tab-inactive opcion-menu">4. Configuración</div>
+        <div id="tab-busqueda" class="tab-item tab-active">1. Búsqueda</div>
+        <div id="tab-dashboards" class="tab-item">2. Dashboards</div>
+        <div id="tab-reportes" class="tab-item">3. Reportes</div>
     </div>
 
-    <div class="main-container">
+    <div id="vista-busqueda" class="main-container">
         <div class="sidebar">
             <h3>MÓDULOS</h3>
-            <button class="menu-btn active">1.1 Accidentes</button>
-            <button class="menu-btn opcion-menu">1.2 Cinemómetros</button>
-            <button class="menu-btn opcion-menu">1.3 Emergencias</button>
-            <button class="menu-btn opcion-menu">1.4 Salir</button>
+            <button id="btn-accidentes" class="menu-btn active">1.1 Accidentes</button>
+            <button id="btn-cinemometros" class="menu-btn">1.2 Cinemómetros</button>
+            <button id="btn-emergencias" class="menu-btn">1.3 Emergencias</button>
+            <button id="btn-salir" class="menu-btn" style="border-color: #d9534f; color: #d9534f; font-weight: bold; margin-top: 30px;">1.4 Salir</button>
         </div>
 
         <div class="content">
-            <h2>MÓDULO ACTIVO / CONSULTA DE ACCIDENTES</h2>
-            
+            <h2 id="titulo-modulo">MÓDULO ACTIVO / CONSULTA DE ACCIDENTES</h2>
             <div class="card">
                 <div class="form-section">
                     <div class="form-group">
-                        <label>Departamento</label>
+                        <label>Departamento / Región</label>
                         <select id="input-departamento">
-                            <option value="LIMA">Lima</option>
+                            <option value="AMAZONAS">Amazonas</option>
+                            <option value="ANCASH">Áncash</option>
+                            <option value="APURIMAC">Apurímac</option>
                             <option value="AREQUIPA">Arequipa</option>
+                            <option value="AYACUCHO">Ayacucho</option>
+                            <option value="CAJAMARCA">Cajamarca</option>
+                            <option value="CALLAO">Callao</option>
+                            <option value="CUSCO">Cusco</option>
+                            <option value="HUANCAVELICA">Huancavelica</option>
+                            <option value="HUANUCO">Huánuco</option>
+                            <option value="ICA">Ica</option>
                             <option value="JUNIN">Junín</option>
+                            <option value="LA LIBERTAD">La Libertad</option>
+                            <option value="LAMBAYEQUE">Lambayeque</option>
+                            <option value="LIMA" selected>Lima</option>
+                            <option value="LORETO">Loreto</option>
+                            <option value="MADRE DE DIOS">Madre de Dios</option>
+                            <option value="MOQUEGUA">Moquegua</option>
+                            <option value="PASCO">Pasco</option>
+                            <option value="PIURA">Piura</option>
+                            <option value="PUNO">Puno</option>
+                            <option value="SAN MARTIN">San Martín</option>
+                            <option value="TACNA">Tacna</option>
+                            <option value="TUMBES">Tumbes</option>
+                            <option value="UCAYALI">Ucayali</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Año de inicio</label>
-                        <input type="number" id="input-anio" value="2020" placeholder="Ej. 2020">
+                        <label>Año de registro</label>
+                        <select id="input-anio"></select>
                     </div>
-                    <div class="form-group">
-                        <label>Código de Vía (Opcional)</label>
-                        <input type="text" placeholder="Ej. PE-1N">
+                    
+                    <div class="botones-accion">
+                        <div class="botones-fila">
+                            <button class="btn-consultar" id="btn-consultar">Consultar</button>
+                            <button class="btn-limpiar" id="btn-limpiar">Limpiar | (C)</button>
+                        </div>
+                        <button class="btn-exportar" id="btn-exportar">📥 Exportar a Excel (CSV)</button>
                     </div>
-                    <button class="btn-consultar" id="btn-consultar">Consultar</button>
-                    <button class="btn-limpiar" id="btn-limpiar">Limpiar | (C)</button>
                 </div>
-                
-                <div class="map-section" id="mapa" style="height: 350px;">
+                <div class="map-section" id="mapa"></div>
+            </div>
+            <div id="contenedor-tabla"></div>
+        </div>
+    </div>
+
+    <div id="vista-dashboards" class="main-container" style="display: none; flex-direction: column;">
+        <div class="content" style="width: 100%; box-sizing: border-box;">
+            <h2>DASHBOARD ANALÍTICO / RESULTADOS DE LA CONSULTA</h2>
+            <p id="dashboard-info" style="color: #555; font-size: 16px;">Realice una consulta en la pestaña "Búsqueda" para visualizar las analíticas.</p>
+            <div id="dashboard-grid" class="dashboard-grid" style="display: none;">
+                <div class="chart-card">
+                    <canvas id="grafico1"></canvas>
+                </div>
+                <div class="chart-card">
+                    <canvas id="grafico2"></canvas>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <div id="contenedor-tabla"></div>
-
+    <div id="vista-reportes" class="main-container" style="display: none; flex-direction: column;">
+        <div class="content" style="width: 100%; box-sizing: border-box;">
+            <h2>MÓDULO DE REPORTES OFICIALES</h2>
+            <div class="card" style="flex-direction: column;">
+                <p style="color: #555; margin-top: 0;">Generación de documento formal PDF basado en la última búsqueda realizada.</p>
+                <div class="botones-fila" style="width: 100%; max-width: 400px;">
+                    <button class="btn-consultar" id="btn-generar-reporte">Generar Previsualización</button>
+                    <button class="btn-exportar" id="btn-imprimir-pdf" style="display: none; background-color: #333;">🖨️ Guardar como PDF</button>
+                </div>
+                
+                <div id="area-reporte" style="margin-top: 30px; padding: 40px; border: 1px solid #ccc; background: white; display: none;">
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
         var map = L.map('mapa').setView([-9.19, -75.015], 5);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap contributors' }).addTo(map);
+        var markersLayer = L.layerGroup().addTo(map);
 
-        document.querySelectorAll('.opcion-menu').forEach(boton => {
-            boton.addEventListener('click', () => {
-                alert("Módulo en construcción para futuras versiones.");
-            });
+        let moduloActivo = 'accidentes'; 
+        let datosActuales = []; 
+        let filtroDep = ''; 
+        let filtroAnio = ''; 
+        let chart1 = null; 
+        let chart2 = null;
+
+        document.getElementById('tab-busqueda').addEventListener('click', () => {
+            document.getElementById('vista-busqueda').style.display = 'flex';
+            document.getElementById('vista-dashboards').style.display = 'none';
+            document.getElementById('vista-reportes').style.display = 'none';
+            document.getElementById('tab-busqueda').classList.add('tab-active');
+            document.getElementById('tab-dashboards').classList.remove('tab-active');
+            document.getElementById('tab-reportes').classList.remove('tab-active');
+            map.invalidateSize(); 
         });
 
-        document.getElementById('btn-limpiar').addEventListener('click', () => {
-            document.getElementById('input-anio').value = '';
+        document.getElementById('tab-dashboards').addEventListener('click', () => {
+            document.getElementById('vista-busqueda').style.display = 'none';
+            document.getElementById('vista-dashboards').style.display = 'flex';
+            document.getElementById('vista-reportes').style.display = 'none';
+            document.getElementById('tab-dashboards').classList.add('tab-active');
+            document.getElementById('tab-busqueda').classList.remove('tab-active');
+            document.getElementById('tab-reportes').classList.remove('tab-active');
+            generarDashboards(); 
+        });
+
+        document.getElementById('tab-reportes').addEventListener('click', () => {
+            document.getElementById('vista-busqueda').style.display = 'none';
+            document.getElementById('vista-dashboards').style.display = 'none';
+            document.getElementById('vista-reportes').style.display = 'flex';
+            document.getElementById('tab-reportes').classList.add('tab-active');
+            document.getElementById('tab-busqueda').classList.remove('tab-active');
+            document.getElementById('tab-dashboards').classList.remove('tab-active');
+        });
+
+        document.getElementById('btn-salir').addEventListener('click', () => {
+            if(confirm("¿Está seguro que desea salir del sistema SUTRAN?")) window.location.href = "https://www.gob.pe/sutran";
+        });
+
+        const actualizarAnios = (modulo) => {
+            const selectAnio = document.getElementById('input-anio');
+            selectAnio.innerHTML = ''; 
+            if (modulo === 'accidentes') selectAnio.innerHTML = '<option value="2020">2020</option><option value="2021">2021</option>';
+            else if (modulo === 'cinemometros') selectAnio.innerHTML = '<option value="2019">2019</option><option value="2020">2020</option><option value="2021">2021</option>';
+            else if (modulo === 'emergencias') selectAnio.innerHTML = '<option value="2026" selected>2026</option><option value="2025">2025</option><option value="2021">2021</option><option value="2020">2020</option>';
+        };
+        actualizarAnios('accidentes');
+
+        const limpiarPantalla = () => {
             document.getElementById('contenedor-tabla').innerHTML = '';
-        });
+            markersLayer.clearLayers(); 
+            map.setView([-9.19, -75.015], 5);
+            document.getElementById('btn-exportar').style.display = 'none';
+            document.getElementById('area-reporte').style.display = 'none';
+            document.getElementById('btn-imprimir-pdf').style.display = 'none';
+            datosActuales = [];
+        };
+        document.getElementById('btn-limpiar').addEventListener('click', limpiarPantalla);
+
+        const cambiarModulo = (idBoton, idOcultar1, idOcultar2, modulo, titulo) => {
+            moduloActivo = modulo;
+            document.getElementById(idBoton).classList.add('active');
+            document.getElementById(idOcultar1).classList.remove('active');
+            document.getElementById(idOcultar2).classList.remove('active');
+            document.getElementById('titulo-modulo').innerText = titulo;
+            actualizarAnios(modulo);
+            limpiarPantalla();
+        };
+
+        document.getElementById('btn-accidentes').addEventListener('click', () => cambiarModulo('btn-accidentes', 'btn-cinemometros', 'btn-emergencias', 'accidentes', 'MÓDULO ACTIVO / CONSULTA DE ACCIDENTES'));
+        document.getElementById('btn-cinemometros').addEventListener('click', () => cambiarModulo('btn-cinemometros', 'btn-accidentes', 'btn-emergencias', 'cinemometros', 'MÓDULO ACTIVO / EXCESOS DE VELOCIDAD (CINEMÓMETROS)'));
+        document.getElementById('btn-emergencias').addEventListener('click', () => cambiarModulo('btn-emergencias', 'btn-accidentes', 'btn-cinemometros', 'emergencias', 'MÓDULO ACTIVO / EMERGENCIAS VIALES'));
 
         document.getElementById('btn-consultar').addEventListener('click', async () => {
             const departamento = document.getElementById('input-departamento').value;
             const anio = document.getElementById('input-anio').value;
 
-            if(!anio) {
-                alert("Por favor, ingrese un año válido.");
-                return;
-            }
-
             try {
-                const url = `ConsultaController?departamento=${departamento}&anio=${anio}`;
+                let url = '';
+                if (moduloActivo === 'accidentes') url = `ConsultaController?departamento=${departamento}&anio=${anio}`;
+                else if (moduloActivo === 'cinemometros') url = `CinemometroController?departamento=${departamento}&anio=${anio}`;
+                else url = `EmergenciaController?departamento=${departamento}&anio=${anio}`;
+                
                 const respuesta = await fetch(url);
-                const datos = await respuesta.json();
+                datosActuales = await respuesta.json(); 
+                filtroDep = document.getElementById('input-departamento').options[document.getElementById('input-departamento').selectedIndex].text;
+                filtroAnio = anio;
 
-                if(datos.length > 0) {
-                    let tabla = `<table class="tabla-resultados">
-                        <thead>
-                            <tr>
-                                <th>N° Reporte</th>
-                                <th>Fecha</th>
-                                <th>Vía</th>
-                                <th>Modalidad</th>
-                                <th>Heridos</th>
-                                <th>Fallecidos</th>
-                            </tr>
-                        </thead>
-                        <tbody>`;
+                markersLayer.clearLayers();
+                document.getElementById('area-reporte').style.display = 'none';
+                document.getElementById('btn-imprimir-pdf').style.display = 'none';
+
+                if(datosActuales.length > 0) {
+                    document.getElementById('btn-exportar').style.display = 'block'; 
+                    let tabla = '<table class="tabla-resultados"><thead><tr>';
                     
-                    datos.forEach(accidente => {
-                        tabla += `<tr>
-                            <td>${accidente.nroReporte || 'N/A'}</td>
-                            <td>${accidente.fecha || 'N/A'}</td>
-                            <td>${accidente.via || 'N/A'}</td>
-                            <td>${accidente.modalidad || 'N/A'}</td>
-                            <td>${accidente.heridos || '0'}</td>
-                            <td>${accidente.fallecidos || '0'}</td>
-                        </tr>`;
+                    if (moduloActivo === 'accidentes') tabla += '<th>N° Reporte</th><th>Fecha</th><th>Vía</th><th>Modalidad</th><th>Heridos</th><th>Fallecidos</th></tr></thead><tbody>';
+                    else if (moduloActivo === 'cinemometros') tabla += '<th>N° Detección</th><th>Fecha</th><th>Carretera</th><th>Límite Vel.</th><th>Vel. Detectada</th></tr></thead><tbody>';
+                    else tabla += '<th>Código Reporte</th><th>Fecha</th><th>Fenómeno</th><th>Provincia</th><th>Distrito</th></tr></thead><tbody>';
+                    
+                    let bounds = []; 
+
+                    datosActuales.forEach(item => {
+                        if (moduloActivo === 'accidentes') {
+                            tabla += `<tr><td>${item.nroReporte || 'N/A'}</td><td>${item.fecha || 'N/A'}</td><td>${item.via || 'N/A'}</td><td>${item.modalidad || 'N/A'}</td><td>${item.heridos || '0'}</td><td>${item.fallecidos || '0'}</td></tr>`;
+                            if (item.latitud && item.longitud && item.latitud !== 0) {
+                                let marker = L.marker([item.latitud, item.longitud]).bindPopup(`<b>Reporte:</b> ${item.nroReporte}<br><b>Modalidad:</b> ${item.modalidad}`);
+                                markersLayer.addLayer(marker);
+                                bounds.push([item.latitud, item.longitud]);
+                            }
+                        } else if (moduloActivo === 'cinemometros') {
+                            tabla += `<tr><td>${item.nroDeteccion || 'N/A'}</td><td>${item.fecha || 'N/A'}</td><td>${item.carretera || 'N/A'}</td><td>${item.limiteVelocidad || '0'} km/h</td><td style="color:red; font-weight:bold;">${item.velocidadDetectada || '0'} km/h</td></tr>`;
+                            if (item.latitud && item.longitud && item.latitud !== 0) {
+                                let marker = L.marker([item.latitud, item.longitud]).bindPopup(`<b>Detección:</b> ${item.nroDeteccion}<br><b>Vel:</b> ${item.velocidadDetectada} km/h`);
+                                markersLayer.addLayer(marker);
+                                bounds.push([item.latitud, item.longitud]);
+                            }
+                        } else {
+                            tabla += `<tr><td>${item.codigoReporte || 'N/A'}</td><td>${item.fechaOcurrencia || 'N/A'}</td><td>${item.fenomeno || 'N/A'}</td><td>${item.provincia || 'N/A'}</td><td>${item.distrito || 'N/A'}</td></tr>`;
+                            if (item.latitud && item.longitud && item.latitud !== 0) {
+                                let marker = L.marker([item.latitud, item.longitud]).bindPopup(`<b>Fenómeno:</b> ${item.fenomeno}<br><b>Provincia:</b> ${item.provincia}`);
+                                markersLayer.addLayer(marker);
+                                bounds.push([item.latitud, item.longitud]);
+                            }
+                        }
                     });
                     
                     tabla += `</tbody></table>`;
                     document.getElementById('contenedor-tabla').innerHTML = tabla;
-                    alert(`¡Consulta exitosa! Se encontraron ${datos.length} siniestros en ${departamento}.`);
-                } else {
-                    document.getElementById('contenedor-tabla').innerHTML = `<p style="margin-top:20px; color:red;">No se encontraron registros para ${departamento} en el año ${anio}.</p>`;
-                }
+                    if (bounds.length > 0) map.fitBounds(bounds, { padding: [50, 50] });
 
+                } else {
+                    document.getElementById('btn-exportar').style.display = 'none';
+                    document.getElementById('contenedor-tabla').innerHTML = `<p style="margin-top:20px; color:red;">No se encontraron registros en el año ${anio}.</p>`;
+                }
             } catch (error) {
-                console.error("Error conectando al backend:", error);
-                alert("Error de conexión. Verifica que el servidor de NetBeans esté corriendo y no haya errores en la consola.");
+                console.error("Error:", error);
+                alert("Error de conexión con el servidor.");
             }
         });
+
+        document.getElementById('btn-exportar').addEventListener('click', () => {
+            if(datosActuales.length === 0) return;
+            let csv = "\uFEFF"; 
+            if (moduloActivo === 'accidentes') csv += "N_Reporte,Fecha,Via,Modalidad,Heridos,Fallecidos\n";
+            else if (moduloActivo === 'cinemometros') csv += "N_Deteccion,Fecha,Carretera,Limite_Velocidad,Velocidad_Detectada\n";
+            else csv += "Codigo_Reporte,Fecha,Fenomeno,Provincia,Distrito\n";
+
+            datosActuales.forEach(item => {
+                if (moduloActivo === 'accidentes') csv += `"${item.nroReporte || ''}","${item.fecha || ''}","${item.via || ''}","${item.modalidad || ''}",${item.heridos || 0},${item.fallecidos || 0}\n`;
+                else if (moduloActivo === 'cinemometros') csv += `"${item.nroDeteccion || ''}","${item.fecha || ''}","${item.carretera || ''}",${item.limiteVelocidad || 0},${item.velocidadDetectada || 0}\n`;
+                else csv += `"${item.codigoReporte || ''}","${item.fechaOcurrencia || ''}","${item.fenomeno || ''}","${item.provincia || ''}","${item.distrito || ''}"\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `SUTRAN_Reporte_${moduloActivo.toUpperCase()}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+        const generarDashboards = () => {
+            if (datosActuales.length === 0) {
+                document.getElementById('dashboard-grid').style.display = 'none';
+                document.getElementById('dashboard-info').style.display = 'block';
+                return;
+            }
+            document.getElementById('dashboard-info').style.display = 'none';
+            document.getElementById('dashboard-grid').style.display = 'grid';
+
+            if (chart1) chart1.destroy();
+            if (chart2) chart2.destroy();
+
+            const ctx1 = document.getElementById('grafico1').getContext('2d');
+            const ctx2 = document.getElementById('grafico2').getContext('2d');
+
+            let etiquetas1 = [], valores1 = [], titulo1 = '', tipo1 = 'doughnut';
+            let etiquetas2 = [], valores2 = [], titulo2 = '', tipo2 = 'bar';
+            let colores = ['#1A4331', '#A3C9A8', '#457B9D', '#E63946', '#F4A261', '#2A9D8F'];
+
+            if (moduloActivo === 'accidentes') {
+                let totalHeridos = 0, totalFallecidos = 0, modalidades = {};
+                datosActuales.forEach(acc => {
+                    totalHeridos += acc.heridos;
+                    totalFallecidos += acc.fallecidos;
+                    modalidades[acc.modalidad] = (modalidades[acc.modalidad] || 0) + 1;
+                });
+                etiquetas1 = ['Heridos', 'Fallecidos']; valores1 = [totalHeridos, totalFallecidos]; titulo1 = 'Impacto Humano (Total)';
+                etiquetas2 = Object.keys(modalidades); valores2 = Object.values(modalidades); titulo2 = 'Siniestros por Modalidad';
+            } 
+            else if (moduloActivo === 'cinemometros') {
+                let conteoCarretera = {};
+                datosActuales.forEach(cin => conteoCarretera[cin.carretera] = (conteoCarretera[cin.carretera] || 0) + 1);
+                etiquetas1 = Object.keys(conteoCarretera); valores1 = Object.values(conteoCarretera); titulo1 = 'Infracciones por Vía';
+                etiquetas2 = [...etiquetas1]; valores2 = [...valores1]; titulo2 = 'Volumen de Infracciones detectadas';
+            }
+            else if (moduloActivo === 'emergencias') {
+                let conteoFenomeno = {}, conteoProvincia = {};
+                datosActuales.forEach(em => {
+                    conteoFenomeno[em.fenomeno] = (conteoFenomeno[em.fenomeno] || 0) + 1;
+                    conteoProvincia[em.provincia] = (conteoProvincia[em.provincia] || 0) + 1;
+                });
+                etiquetas1 = Object.keys(conteoFenomeno); valores1 = Object.values(conteoFenomeno); titulo1 = 'Emergencias por Tipo de Fenómeno';
+                etiquetas2 = Object.keys(conteoProvincia); valores2 = Object.values(conteoProvincia); titulo2 = 'Emergencias por Provincia';
+            }
+
+            chart1 = new Chart(ctx1, { type: tipo1, data: { labels: etiquetas1, datasets: [{ data: valores1, backgroundColor: colores }] }, options: { responsive: true, plugins: { title: { display: true, text: titulo1, font: { size: 16 } } } } });
+            chart2 = new Chart(ctx2, { type: tipo2, data: { labels: etiquetas2, datasets: [{ label: 'Cantidad', data: valores2, backgroundColor: '#1A4331' }] }, options: { responsive: true, plugins: { title: { display: true, text: titulo2, font: { size: 16 } }, legend: { display: false } } } });
+        };
+
+        document.getElementById('btn-generar-reporte').addEventListener('click', () => {
+            if (datosActuales.length === 0) {
+                alert("Por favor, realice primero una consulta en la pestaña 'Búsqueda'.");
+                return;
+            }
+
+            const fechaHoy = new Date().toLocaleDateString('es-PE', { year: 'numeric', month: 'long', day: 'numeric' });
+            let tituloDocumento = moduloActivo === 'accidentes' ? 'Siniestros Viales' : moduloActivo === 'cinemometros' ? 'Excesos de Velocidad (Cinemómetros)' : 'Emergencias en la Red Vial';
+            
+            let htmlReporte = `
+                <div style="text-align: center; border-bottom: 2px solid #1A4331; padding-bottom: 20px; margin-bottom: 20px;">
+                    <h1 style="color: #1A4331; margin: 0;">MINISTERIO DE TRANSPORTES Y COMUNICACIONES</h1>
+                    <h2 style="color: #555; margin: 5px 0 0 0;">Superintendencia de Transporte Terrestre de Personas, Carga y Mercancías (SUTRAN)</h2>
+                </div>
+                <div style="margin-bottom: 30px;">
+                    <p><strong>REPORTE OFICIAL DE:</strong> ${tituloDocumento}</p>
+                    <p><strong>DEPARTAMENTO / REGIÓN:</strong> ${filtroDep.toUpperCase()}</p>
+                    <p><strong>PERIODO (AÑO):</strong> ${filtroAnio}</p>
+                    <p><strong>FECHA DE EMISIÓN:</strong> ${fechaHoy}</p>
+                    <p><strong>TOTAL DE REGISTROS:</strong> ${datosActuales.length}</p>
+                </div>
+                ${document.getElementById('contenedor-tabla').innerHTML}
+                <div style="margin-top: 50px; text-align: center; color: #777;">
+                    <p>___________________________________</p>
+                    <p>Documento generado automáticamente por el Sistema de Seguridad Vial SUTRAN.</p>
+                </div>
+            `;
+
+            document.getElementById('area-reporte').innerHTML = htmlReporte;
+            document.getElementById('area-reporte').style.display = 'block';
+            document.getElementById('btn-imprimir-pdf').style.display = 'block';
+        });
+
+        document.getElementById('btn-imprimir-pdf').addEventListener('click', () => {
+            window.print();
+        });
+
     </script>
 </body>
 </html>
-
