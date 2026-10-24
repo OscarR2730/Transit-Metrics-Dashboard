@@ -20,10 +20,37 @@ CREATE TABLE ReportesAccidentes (
     CANT_FALLECIDOS INT DEFAULT 0,
     CANT_HERIDOS INT DEFAULT 0,
     DEPARTAMENTO VARCHAR(50),
-    CODIGO_VIA VARCHAR(20)
+    CODIGO_VIA VARCHAR(20),
+    LATITUD DECIMAL(9,6) NULL,
+    LONGITUD DECIMAL(9,6) NULL
 );
 
+CREATE TABLE ReportesCinemometros (
+    NRO_DETECCION VARCHAR(30) PRIMARY KEY,
+    id_ubicacion INT FOREIGN KEY REFERENCES TB_UBICACION_VIA(id_ubicacion),
+    FECHA_DETECCION DATE NOT NULL,
+    CARRETERA VARCHAR(100),
+    LIMITE_VELOCIDAD INT,
+    VELOCIDAD_DETECTADA INT,
+    DEPARTAMENTO VARCHAR(50),
+    LATITUD DECIMAL(9,6) NULL,
+    LONGITUD DECIMAL(9,6) NULL
+);
+
+CREATE TABLE ReportesEmergencias (
+    CODIGO_REPORTE VARCHAR(30) PRIMARY KEY,
+    id_ubicacion INT FOREIGN KEY REFERENCES TB_UBICACION_VIA(id_ubicacion),
+    FECHA_OCURRENCIA DATE NOT NULL,
+    FENOMENO VARCHAR(100),
+    PROVINCIA VARCHAR(50),
+    DISTRITO VARCHAR(50),
+    DEPARTAMENTO VARCHAR(50),
+    LATITUD DECIMAL(9,6) NULL,
+    LONGITUD DECIMAL(9,6) NULL
+);
 GO
+
+
 CREATE PROCEDURE sp_ConsultarAccidentesFiltro
     @Departamento VARCHAR(50),
     @Anio INT
@@ -31,14 +58,53 @@ AS
 BEGIN
     SET NOCOUNT ON;
     SELECT 
-        NRO_REPORTE AS [N° Reporte],
-        FECHA_ACC AS [Fecha],
-        CODIGO_VIA AS [Vía],
-        DEPARTAMENTO AS [Departamento],
-        MODALIDAD_ACC AS [Modalidad],
-        CANT_FALLECIDOS AS [Fallecidos],
-        CANT_HERIDOS AS [Heridos]
+        NRO_REPORTE,
+        FORMAT(FECHA_ACC, 'yyyy-MM-dd') AS FECHA,
+        CODIGO_VIA,
+        MODALIDAD_ACC,
+        CANT_HERIDOS,
+        CANT_FALLECIDOS,
+        LATITUD,
+        LONGITUD
     FROM ReportesAccidentes
     WHERE DEPARTAMENTO = @Departamento AND YEAR(FECHA_ACC) = @Anio;
+END;
+GO
+
+CREATE PROCEDURE sp_ConsultarCinemometrosFiltro
+    @Departamento VARCHAR(50),
+    @Anio INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT 
+        NRO_DETECCION,
+        FORMAT(FECHA_DETECCION, 'yyyy-MM-dd') AS FECHA,
+        CARRETERA,
+        LIMITE_VELOCIDAD,
+        VELOCIDAD_DETECTADA,
+        LATITUD,
+        LONGITUD
+    FROM ReportesCinemometros
+    WHERE DEPARTAMENTO = @Departamento AND YEAR(FECHA_DETECCION) = @Anio;
+END;
+GO
+
+CREATE PROCEDURE sp_ConsultarEmergenciasFiltro
+    @Departamento VARCHAR(50),
+    @Anio INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT 
+        CODIGO_REPORTE,
+        FORMAT(FECHA_OCURRENCIA, 'yyyy-MM-dd') AS FECHA,
+        FENOMENO,
+        PROVINCIA,
+        DISTRITO,
+        LATITUD,
+        LONGITUD
+    FROM ReportesEmergencias
+    WHERE DEPARTAMENTO = @Departamento AND YEAR(FECHA_OCURRENCIA) = @Anio;
 END;
 GO
