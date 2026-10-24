@@ -25,4 +25,22 @@ public class Accidente {
     public void setFallecidos(int fallecidos) { this.fallecidos = fallecidos; }
     public int getHeridos() { return heridos; }
     public void setHeridos(int heridos) { this.heridos = heridos; }
+    private double latitud;
+    private double longitud;
+
+    public double getLatitud() {
+        return latitud;
+    }
+
+    public void setLatitud(double latitud) {
+        this.latitud = latitud;
+    }
+
+    public double getLongitud() {
+        return longitud;
+    }
+
+    public void setLongitud(double longitud) {
+        this.longitud = longitud;
+    }
 }
