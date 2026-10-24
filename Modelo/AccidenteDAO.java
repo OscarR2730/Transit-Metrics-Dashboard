@@ -40,6 +40,9 @@ public class AccidenteDAO {
                 a.setFallecidos(rs.getInt(6));
                 a.setHeridos(rs.getInt(7));
                 
+                a.setLatitud(rs.getDouble(8));
+                a.setLongitud(rs.getDouble(9));
+                
                 lista.add(a);
             }
         } catch (SQLException e) {
